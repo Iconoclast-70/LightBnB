@@ -21,7 +21,6 @@ const pool = new Pool({
       });
   }
   exports.getAllProperties = getAllProperties;
-/// Users
 
 const getUserWithEmail = (email) => {
   return pool
@@ -34,24 +33,6 @@ const getUserWithEmail = (email) => {
     });
 }
 exports.getUserWithEmail = getUserWithEmail;
-
-/**
- * Get a single user from the database given their email.
- * @param {String} email The email of the user.
- * @return {Promise<{}>} A promise to the user.
- */
-// const getUserWithEmail = function(email) {
-//   let user;
-//   for (const userId in users) {
-//     user = users[userId];
-//     if (user.email.toLowerCase() === email.toLowerCase()) {
-//       break;
-//     } else {
-//       user = null;
-//     }
-//   }
-//   return Promise.resolve(user);
-// }
 
 const getUserWithId = function(id) {
   return pool.query(`SELECT * FROM users WHERE id = $1`, [id])
@@ -66,28 +47,7 @@ const getUserWithId = function(id) {
   })
  };
 
-
-// const getUserWithId = (id) => {
-//   return pool
-//     .query(`SELECT * FROM users WHERE id = $1`, [id])
-//     .then( (result) => {
-//       return result.rows[0];
-//     })
-//     .catch((err) => {
-//       return err;
-//     });
-// }
  exports.getUserWithId = getUserWithId;
-
-/**
- * Get a single user from the database given their id.
- * @param {string} id The id of the user.
- * @return {Promise<{}>} A promise to the user.
- */
-// const getUserWithId = function(id) {
-//   return Promise.resolve(users[id]);
-// }
-// exports.getUserWithId = getUserWithId;
 
 const addUser = (user) => {
   return pool
@@ -102,28 +62,20 @@ const addUser = (user) => {
 }
 exports.addUser = addUser;
 
-/**
- * Add a new user to the database.
- * @param {{name: string, password: string, email: string}} user
- * @return {Promise<{}>} A promise to the user.
- */
-// const addUser =  function(user) {
-//   const userId = Object.keys(users).length + 1;
-//   user.id = userId;
-//   users[userId] = user;
-//   return Promise.resolve(user);
-// }
-// exports.addUser = addUser;
-
 /// Reservations
 
-/**
- * Get all reservations for a single user.
- * @param {string} guest_id The id of the user.
- * @return {Promise<[{}]>} A promise to the reservations.
- */
-const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+
+const getAllReservations = (guest_id, limit = 10) => {
+  return pool
+    .query(`SELECT * FROM reservations 
+    JOIN properties ON properties.id = reservations.property_id
+    WHERE reservations.guest_id = $1 LIMIT $2;`, [guest_id, limit])
+    .then((result) => {
+      return result.rows;
+    })
+    .catch((err) => {
+      return err;
+    });
 }
 exports.getAllReservations = getAllReservations;
 
