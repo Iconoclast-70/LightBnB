@@ -45,9 +45,6 @@ const pool = new Pool({
     queryParams.push(limit);
     queryString += ` LIMIT $${queryParams.length}`;
 
-    console.log(selectString + queryString);
-    console.log(queryParams);
-
     return pool
       .query(selectString + queryString, queryParams)
       .then((result) => {
@@ -116,15 +113,58 @@ const getAllReservations = (guest_id, limit = 10) => {
 }
 exports.getAllReservations = getAllReservations;
 
-/**
- * Add a property to the database
- * @param {{}} property An object containing all of the property details.
- * @return {Promise<{}>} A promise to the property.
- */
-const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+const addProperty = (options) => {
+
+  let addParams = []; //Value array for table values
+  let qString = ""; //SQL Injection
+  let insString = ""; //Column names for INSERT query
+  let insertString = ""; //Full query for insertion
+  let optionNumber = 0; //Number conversion for table constraints requiring integer values
+
+  for (option in options) {
+
+    switch (option) {
+      case "cost_per_night":
+        optionNumber = Number(options[option])
+        addParams.push(optionNumber);
+        insString += option + ",";
+        qString += `$${addParams.length},`;
+        break;
+      case "parking_spaces":
+        optionNumber = Number(options[option])
+        addParams.push(optionNumber);
+        insString += option + ",";
+        qString += `$${addParams.length},`;
+        break;
+      case "number_of_bathrooms":
+        optionNumber = Number(options[option])
+        addParams.push(optionNumber);
+        insString += option + ",";
+        qString += `$${addParams.length},`;
+        break;
+      case "number_of_bedrooms":
+        optionNumber = Number(options[option])
+        addParams.push(optionNumber);
+        insString += option + ",";
+        qString += `$${addParams.length},`;
+        break;
+      default:
+        addParams.push(options[option]);
+        insString += option + ",";
+        qString += `$${addParams.length},`;
+        break;
+    }
+  }
+
+  insertString = `INSERT INTO properties (${insString.slice(0,-1)}) VALUES (${qString.slice(0,-1)});`;
+  
+  return pool
+    .query(insertString, addParams)
+    .then((result) => {
+      return result.rows;
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 }
 exports.addProperty = addProperty;
