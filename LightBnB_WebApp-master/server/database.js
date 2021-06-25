@@ -2,7 +2,6 @@
 //const users = require('./json/users.json');
 const { Pool } = require('pg');
 
-
 const pool = new Pool({
   user: 'vagrant',
   password: '123',
@@ -11,8 +10,46 @@ const pool = new Pool({
   });
 
   const getAllProperties = (options, limit = 10) => {
+
+    // options.owner_id
+   
+    const queryParams = [];
+    let queryString = "";
+    let selectString = `SELECT * FROM properties JOIN property_reviews ON property_reviews.property_id = properties.id`
+
+    if (options.city) {
+      queryParams.push(`%${options.city.slice(1)}%`);
+      queryString += ` WHERE properties.city LIKE $${queryParams.length}`;
+    }
+
+    if (options.owner_id) {
+      queryParams.push(Number(options.owner_id) * 100);
+      queryString += ` AND properties.owner_id = $${queryParams.length}`;
+    }
+
+    if (options.minimum_price_per_night) {
+      queryParams.push(Number(options.minimum_price_per_night) * 100);
+      queryString += ` AND properties.cost_per_night >= $${queryParams.length}`;
+    }
+
+    if (options.maximum_price_per_night) {
+      queryParams.push(Number(options.maximum_price_per_night));
+      queryString += ` AND properties.cost_per_night <= $${queryParams.length}`;
+    }
+
+    if (options.minimum_rating) {
+      queryParams.push(Number(options.minimum_rating));
+      queryString += ` AND property_reviews.rating >= $${queryParams.length}`;
+    }
+
+    queryParams.push(limit);
+    queryString += ` LIMIT $${queryParams.length}`;
+
+    console.log(selectString + queryString);
+    console.log(queryParams);
+
     return pool
-      .query(`SELECT * FROM properties LIMIT $1`, [limit])
+      .query(selectString + queryString, queryParams)
       .then((result) => {
         return result.rows;
       })
@@ -78,24 +115,6 @@ const getAllReservations = (guest_id, limit = 10) => {
     });
 }
 exports.getAllReservations = getAllReservations;
-
-/// Properties
-
-/**
-//  * Get all properties.
-//  * @param {{}} options An object containing query options.
-//  * @param {*} limit The number of results to return.
-//  * @return {Promise<[{}]>}  A promise to the properties.
-//  */
-// const getAllProperties = function(options, limit = 10) {
-//   const limitedProperties = {};
-//   for (let i = 1; i <= limit; i++) {
-//     limitedProperties[i] = properties[i];
-//   }
-//   return Promise.resolve(limitedProperties);
-// }
-// exports.getAllProperties = getAllProperties;
-
 
 /**
  * Add a property to the database
