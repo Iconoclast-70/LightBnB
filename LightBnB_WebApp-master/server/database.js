@@ -98,7 +98,6 @@ exports.addUser = addUser;
 
 /// Reservations
 
-
 const getAllReservations = (guest_id, limit = 10) => {
   return pool
     .query(`SELECT * FROM reservations 
@@ -156,7 +155,7 @@ const addProperty = (options) => {
     }
   }
 
-  insertString = `INSERT INTO properties (${insString.slice(0,-1)}) VALUES (${qString.slice(0,-1)});`;
+  insertString = `INSERT INTO properties (${insString.slice(0,-1)}) VALUES (${qString.slice(0,-1)}) RETURNING *`;
   
   return pool
     .query(insertString, addParams)
